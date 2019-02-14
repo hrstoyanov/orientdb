@@ -4,6 +4,7 @@ import com.orientechnologies.orient.core.db.OSchedulerInternal;
 import com.orientechnologies.orient.core.db.config.OMulticastConfguration;
 import com.orientechnologies.orient.core.db.config.ONodeConfiguration;
 import com.orientechnologies.orient.core.db.config.ONodeConfigurationBuilder;
+import com.orientechnologies.orient.core.db.config.ONodeIdentity;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -16,12 +17,12 @@ public class OUDPMulticastNodeManagerIT {
     int totalNodes = 0;
 
     @Override
-    public synchronized void nodeJoined(NodeData data) {
+    public synchronized void nodeConnected(NodeData data) {
       totalNodes++;
     }
 
     @Override
-    public synchronized void nodeLeft(NodeData data) {
+    public synchronized void nodeDisconnected(NodeData data) {
       totalNodes--;
     }
   }
@@ -78,16 +79,16 @@ public class OUDPMulticastNodeManagerIT {
 
     Thread.sleep(10000);
 
-    String lastMaster = null;
+    ONodeIdentity lastMaster = null;
     for (OUDPMulticastNodeManager node : nodes.values()) {
       int numOfMasters = 0;
       for (ODiscoveryListener.NodeData value : node.knownServers.values()) {
         if (value.master) {
           numOfMasters++;
           if (lastMaster == null) {
-            lastMaster = value.name;
+            lastMaster = value.getNodeIdentity();
           } else {
-            Assert.assertEquals(lastMaster, value.name);
+            Assert.assertEquals(lastMaster, value.getNodeIdentity());
           }
         }
       }
@@ -97,7 +98,7 @@ public class OUDPMulticastNodeManagerIT {
     for (int i = 0; i < nNodes - quorum; i++) {
 
       String leader = nodes.values().stream().filter(x -> x.leaderStatus.status == OLeaderElectionStateMachine.Status.LEADER)
-          .map(x -> x.getConfig().getNodeName()).findFirst().orElse(null);
+          .map(x -> x.getConfig().getNodeIdentity().getName()).findFirst().orElse(null);
       Assert.assertNotNull(leader);
       nodes.remove(leader).stop();
 
@@ -110,9 +111,9 @@ public class OUDPMulticastNodeManagerIT {
           if (value.master) {
             numOfMasters++;
             if (lastMaster == null) {
-              lastMaster = value.name;
+              lastMaster = value.getNodeIdentity();
             } else {
-              Assert.assertEquals(lastMaster, value.name);
+              Assert.assertEquals(lastMaster, value.getNodeIdentity());
             }
           }
         }
@@ -174,16 +175,16 @@ public class OUDPMulticastNodeManagerIT {
 
     Thread.sleep(10000);
 
-    String lastMaster = null;
+    ONodeIdentity lastMaster = null;
     for (OUDPMulticastNodeManager node : nodes.values()) {
       int numOfMasters = 0;
       for (ODiscoveryListener.NodeData value : node.knownServers.values()) {
         if (value.master) {
           numOfMasters++;
           if (lastMaster == null) {
-            lastMaster = value.name;
+            lastMaster = value.getNodeIdentity();
           } else {
-            Assert.assertEquals(lastMaster, value.name);
+            Assert.assertEquals(lastMaster, value.getNodeIdentity());
           }
         }
       }
@@ -215,9 +216,9 @@ public class OUDPMulticastNodeManagerIT {
           if (value.master) {
             numOfMasters++;
             if (lastMaster == null) {
-              lastMaster = value.name;
+              lastMaster = value.getNodeIdentity();
             } else {
-              Assert.assertEquals(lastMaster, value.name);
+              Assert.assertEquals(lastMaster, value.getNodeIdentity());
             }
           }
         }
